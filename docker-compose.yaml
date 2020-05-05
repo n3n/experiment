@@ -1,0 +1,52 @@
+version: "3.6"
+services:
+  postgres:
+    image: postgres:11
+    ports:
+      - "0.0.0.0:5432:5432"
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: postgrespassword
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8081:8080"
+  graphql-engine:
+    image: hasura/graphql-engine:v1.2.0
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./migrations:/hasura-migrations
+      - ./metadata:/hasura-metadata
+    depends_on:
+      - "postgres"
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      ## uncomment next line to set an admin secret
+      HASURA_GRAPHQL_ADMIN_SECRET: Admin@Aginix
+      HASURA_GRAPHQL_JWT_SECRET: '{"type": "RS512", "key": "-----BEGIN CERTIFICATE-----\nMIIDCTCCAfGgAwIBAgIJV/6FJXbcJATcMA0GCSqGSIb3DQEBCwUAMCIxIDAeBgNV\nBAMTF2hhc3VyYS1kZW1vLTIuYXV0aDAuY29tMB4XDTIwMDUwNTA5MjUzNloXDTM0\nMDExMjA5MjUzNlowIjEgMB4GA1UEAxMXaGFzdXJhLWRlbW8tMi5hdXRoMC5jb20w\nggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQClmuNYL59DDp29pCGAWrFM\nr02hpHzG5GtUmlweMp1XB52cwN6BaFS4evgBRsz0ys26jXVIe6jJKGZmv8oufaUc\ncRKhx+o1nt5QGiysrJ89u0jU45IcAw234J83XYdro9SlT3S8v4WdREsyc0yJdk7Q\nVXmsyDS37o3C7YLsY0ceHHqYr9OK9LvAa8R0Su96rX1eWcRINwvkJYmEQLnRu+DT\nDk+zpx++EXJE2PRN4pW4tO6yaF8APP9KkEJJXWSL4jlt/eQWg9zrhPLhyqFwiS2N\nER5+dtxlOMdBlL5qLzxmenQb5lRBDK1ZUGEMRulF5ibE5qt35rjNkH/E8tuIjoL/\nAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFNq32s/kHj+Jls+j\nFV4s7/+Ki/n3MA4GA1UdDwEB/wQEAwIChDANBgkqhkiG9w0BAQsFAAOCAQEAVCjL\nuJR+U0zqcDxXQQhJKpO4yo5OUMKsVHmoDDL4iLuOs/TwV/XZNR9yXJB0OUtqFGgd\nzCrjOMMB9Iu8H2AO741tithwFDtSzgMNkb/kUvkbc+CDILm+InFIz9hwJ2aHdNCl\nyx+Ik5AoanSYXqZGMHyyXEUbFRVClQGnNHTSautIJLQQCmLYKIfPbqq74k7pg4ep\n/2It1nZQCyybyLCB9D4trF8er2HkBsjWBQ+Jp0McmQIiYv6FvN8TUApz5EsnQURl\nBLZ7NhH7achwrmV+xuwSLeKWUbXds5zODchvnD8tntZK8pFSpQs0fgO56oJxOhhl\nFaH1QKv7bMKhH8Wm9w==\n-----END CERTIFICATE-----"}'
+  metabase:
+    image: metabase/metabase
+    restart: always
+    ports:
+      - 3001:3000
+    volumes:
+      # declare your mount volume /host/dir:/container/dir
+      - ./metabase-data:/metabase-data
+    depends_on:
+      - postgres
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: "5432"
+      MB_DB_USER: postgres
+      MB_DB_PASS: postgrespassword
+      MB_DB_HOST: postgres
+volumes:
+  db_data:

@@ -1,4 +1,4 @@
-FROM hasura/graphql-engine:latest
+FROM hasura/graphql-engine:latest.cli-migrations
 
 WORKDIR /hasura
 

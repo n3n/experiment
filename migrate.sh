@@ -36,28 +36,24 @@ wait_for_port() {
 # wait for port to be ready
 wait_for_port $HASURA_GRAPHQL_SERVER_PORT
 
-# check if migration directory is set, default otherwise
-if [ -z ${HASURA_GRAPHQL_MIGRATIONS_DIR+x} ]; then
-    HASURA_GRAPHQL_MIGRATIONS_DIR="$DEFAULT_MIGRATIONS_DIR"
+log "applying migrations from $DEFAULT_MIGRATIONS_DIR"
+cd "/hasura"
+
+# Make config.yaml
+echo "version: 2" > config.yaml
+echo "endpoint: http://localhost:$HASURA_GRAPHQL_SERVER_PORT" >> config.yaml
+echo "show_update_notification: false" >> config.yaml
+echo "metadata_directory: metadata" >> config.yaml
+echo "admin_secret: $HASURA_GRAPHQL_ADMIN_SECRET" >> config.yaml
+
+
+log "applying migrate / metadata"
+
+if [ -d "$HASURA_GRAPHQL_ADMIN_SECRET" ]; then
+    hasura-cli migrate apply --admin-secret $HASURA_GRAPHQL_ADMIN_SECRET 
+    hasura-cli metadata apply --admin-secret $HASURA_GRAPHQL_ADMIN_SECRET
+else
+    hasura-cli migrate apply
+    hasura-cli metadata apply
 fi
 
-# apply migrations if the directory exist
-if [ -d "$HASURA_GRAPHQL_MIGRATIONS_DIR" ]; then
-    log "applying migrations from $HASURA_GRAPHQL_MIGRATIONS_DIR"
-    mkdir -p "$TEMP_MIGRATIONS_DIR"
-    cp -a "$HASURA_GRAPHQL_MIGRATIONS_DIR/." "$TEMP_MIGRATIONS_DIR/migrations/"
-    cd "$TEMP_MIGRATIONS_DIR"
-    echo "endpoint: http://localhost:$HASURA_GRAPHQL_SERVER_PORT" > config.yaml
-    echo "show_update_notification: false" >> config.yaml
-    hasura-cli migrate apply
-    # check if metadata.[yaml|json] exist and apply
-    if [ -f migrations/metadata.yaml ]; then
-        log "applying metadata from $HASURA_GRAPHQL_MIGRATIONS_DIR/metadata.yaml"
-        hasura-cli metadata apply
-    elif [ -f migrations/metadata.json ]; then
-        log "applying metadata from $HASURA_GRAPHQL_MIGRATIONS_DIR/metadata.json"
-        hasura-cli metadata apply
-    fi
-else
-    log "directory $HASURA_GRAPHQL_MIGRATIONS_DIR does not exist, skipping migrations"
-fi
