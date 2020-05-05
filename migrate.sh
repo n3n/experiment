@@ -9,7 +9,7 @@ log() {
     echo $REVISION $MESSAGE
 }
 
-DEFAULT_MIGRATIONS_DIR="/hasura-migrations"
+DEFAULT_MIGRATIONS_DIR="/hasura/migrations"
 TEMP_MIGRATIONS_DIR="/tmp/hasura-migrations"
 
 # check server port and ser default as 8080

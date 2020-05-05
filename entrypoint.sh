@@ -25,21 +25,16 @@ wait_for_port() {
     log "failed waiting for $HOST:$PORT" && exit 1
 }
 
-if [ "$ENABLE_CLOUDSQL_PROXY" = true ]; then
-  log "Starting cloud sql proxy..."
-  cloud_sql_proxy -instances=$CLOUDSQL_INSTANCE=tcp:5432 &
-fi
-
 # wait_for_port 5432 $POSTGRES_HOST
 
 if [ "$ENABLE_MIGRATIONS" = true ]; then
   log "Running migrations in background"
-  ./migrate.sh &
+  ./hasura/migrate.sh &
 fi
 
 if [ "$ENABLE_CONSOLE" = true ]; then
   log "Running console in background"
-  ./console.sh &
+  ./hasura/console.sh &
 fi
 
 log "Starting graphql engine on port $HASURA_GRAPHQL_SERVER_PORT"
