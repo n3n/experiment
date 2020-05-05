@@ -29,12 +29,7 @@ wait_for_port() {
 
 if [ "$ENABLE_MIGRATIONS" = true ]; then
   log "Running migrations in background"
-  ./hasura/migrate.sh &
-fi
-
-if [ "$ENABLE_CONSOLE" = true ]; then
-  log "Running console in background"
-  ./hasura/console.sh &
+  ./migrate.sh &
 fi
 
 log "Starting graphql engine on port $HASURA_GRAPHQL_SERVER_PORT"

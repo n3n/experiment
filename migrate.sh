@@ -9,8 +9,7 @@ log() {
     echo $REVISION $MESSAGE
 }
 
-DEFAULT_MIGRATIONS_DIR="/hasura/migrations"
-TEMP_MIGRATIONS_DIR="/tmp/hasura-migrations"
+DEFAULT_MIGRATIONS_DIR="/hasura-migrations"
 
 # check server port and ser default as 8080
 if [ -z ${HASURA_GRAPHQL_SERVER_PORT+x} ]; then
@@ -37,23 +36,21 @@ wait_for_port() {
 wait_for_port $HASURA_GRAPHQL_SERVER_PORT
 
 log "applying migrations from $DEFAULT_MIGRATIONS_DIR"
-cd "/hasura"
+
+cd "/"
 
 # Make config.yaml
 echo "version: 2" > config.yaml
 echo "endpoint: http://localhost:$HASURA_GRAPHQL_SERVER_PORT" >> config.yaml
 echo "show_update_notification: false" >> config.yaml
-echo "metadata_directory: metadata" >> config.yaml
+echo "metadata_directory: /hasura-metadata" >> config.yaml
+echo "migrations_directory: /hasura-migrations" >> config.yaml
 echo "admin_secret: $HASURA_GRAPHQL_ADMIN_SECRET" >> config.yaml
 
-
-log "applying migrate / metadata"
-
 if [ -d "$HASURA_GRAPHQL_ADMIN_SECRET" ]; then
-    hasura-cli migrate apply --admin-secret $HASURA_GRAPHQL_ADMIN_SECRET 
-    hasura-cli metadata apply --admin-secret $HASURA_GRAPHQL_ADMIN_SECRET
-else
-    hasura-cli migrate apply
-    hasura-cli metadata apply
+    echo "admin_secret: $HASURA_GRAPHQL_ADMIN_SECRET" >> config.yaml
 fi
+
+hasura-cli migrate apply
+hasura-cli metadata apply
 
